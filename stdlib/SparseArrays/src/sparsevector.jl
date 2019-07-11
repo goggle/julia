@@ -1717,12 +1717,13 @@ end
 
 ### BLAS-2 / sparse A * sparse x -> dense y
 
-function *(A::SparseMatrixCSC, x::AbstractSparseVector)
+function *(A::SparseMatrixCSC{TvA,TiA}, x::AbstractSparseVector{TvX,TiX}) where {TvA, TiA, TvX, TiX}
     # require_one_based_indexing(A, x)
     m, n = size(A)
     length(x) == n || throw(DimensionMismatch())
-    inds = []
-    vals = []
+    
+    inds = promote_type(TiA, TiX)[]
+    vals = promote_type(TvA, TvX)[]
 
     for (xi, xv) in zip(nonzeroinds(x), nonzeros(x))
         indrange = A.colptr[xi]:A.colptr[xi+1]-1
