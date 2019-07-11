@@ -1718,10 +1718,19 @@ end
 ### BLAS-2 / sparse A * sparse x -> dense y
 
 function *(A::SparseMatrixCSC, x::AbstractSparseVector)
-    require_one_based_indexing(A, x)
-    y = densemv(A, x)
-    initcap = min(nnz(A), size(A,1))
-    _dense2sparsevec(y, initcap)
+    # require_one_based_indexing(A, x)
+    m, n = size(A)
+    length(x) == n || throw(DimensionMismatch())
+    inds = []
+    vals = []
+
+    for (xi, xv) in zip(nonzeroinds(x), nonzeros(x))
+        indrange = A.colptr[xi]:A.colptr[xi+1]-1
+        append!(inds, A.rowval[indrange])
+        append!(vals, A.nzval[indrange] * xv)
+    end
+
+    return sparsevec(inds, vals, m)
 end
 
 *(transA::Transpose{<:Any,<:SparseMatrixCSC}, x::AbstractSparseVector) =
