@@ -1724,14 +1724,17 @@ function *(A::SparseMatrixCSC{TvA,TiA}, x::AbstractSparseVector{TvX,TiX}) where 
     
     inds = promote_type(TiA, TiX)[]
     vals = promote_type(TvA, TvX)[]
+    out = spzeros(m) # TODO: type
 
     for (xi, xv) in zip(nonzeroinds(x), nonzeros(x))
         indrange = A.colptr[xi]:A.colptr[xi+1]-1
-        append!(inds, A.rowval[indrange])
-        append!(vals, A.nzval[indrange] * xv)
+        # append!(inds, A.rowval[indrange])
+        # append!(vals, A.nzval[indrange] * xv)
+        out += sparsevec(A.rowval[indrange], A.nzval[indrange] * xv, m)
     end
 
-    return sparsevec(inds, vals, m)
+    # return sparsevec(inds, vals, m)
+    return out
 end
 
 *(transA::Transpose{<:Any,<:SparseMatrixCSC}, x::AbstractSparseVector) =
