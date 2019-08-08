@@ -365,6 +365,15 @@ end
                 @test Symmetric(asym)\b  ≈ asym\b
             end
         end
+
+        @testset "dot product of symmetric matrices" begin
+            rhs = dot(asym, asym)
+            @test dot(Symmetric(asym), Symmetric(asym)) ≈ rhs
+            @test dot(Symmetric(asym, :L), Symmetric(asym, :L)) ≈ rhs
+            @test dot(Symmetric(asym), Symmetric(asym, :L)) ≈ rhs
+            @test dot(Symmetric(asym, :L), Symmetric(asym)) ≈ rhs
+            @test_throws DimensionMismatch dot(Symmetric(asym), Symmetric(Matrix{eltya}(undef, n-1, n-1)))
+        end
     end
 end
 
