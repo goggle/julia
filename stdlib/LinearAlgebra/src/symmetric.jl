@@ -414,7 +414,7 @@ function triu(A::Symmetric, k::Integer=0)
     end
 end
 
-function dot(A::Symmetric{Ta,<:AbstractArray}, B::Symmetric{Tb,<:AbstractArray}) where {Ta,Tb<:Number}
+function dot(A::Symmetric, B::Symmetric)
     n = size(A, 2)
     if n != size(B, 2)
         throw(DimensionMismatch("A has dimensions $(size(A)) but B has dimensions $(size(B))"))
@@ -426,11 +426,13 @@ function dot(A::Symmetric{Ta,<:AbstractArray}, B::Symmetric{Tb,<:AbstractArray})
             for i in 1:(j - 1)
                 dotprod += 2 * dot(A.data[i, j], B.data[i, j])
             end
-            dotprod += dot(A.data[j, j], B.data[j, j])
+            # dotprod += dot(A[j, j], B[j, j])
+            dotprod += dot(symmetric(A.data[j, j], sym_uplo(A.uplo)), symmetric(B.data[j, j], sym_uplo(B.uplo)))
         end
     elseif A.uplo == 'L' && B.uplo == 'L'
         for j in 1:n
-            dotprod += dot(A.data[j, j], B.data[j, j])
+            # dotprod += dot(A[j, j], B[j, j])
+            dotprod += dot(symmetric(A.data[j, j], sym_uplo(A.uplo)), symmetric(B.data[j, j], sym_uplo(B.uplo)))
             for i in (j + 1):n
                 dotprod += 2 * dot(A.data[i, j], B.data[i, j])
             end
@@ -440,11 +442,13 @@ function dot(A::Symmetric{Ta,<:AbstractArray}, B::Symmetric{Tb,<:AbstractArray})
             for i in 1:(j - 1)
                 dotprod += 2 * dot(A.data[i, j], B.data[j, i])
             end
-            dotprod += dot(A.data[j, j], B.data[j, j])
+            # dotprod += dot(A[j, j], B[j, j])
+            dotprod += dot(symmetric(A.data[j, j], sym_uplo(A.uplo)), symmetric(B.data[j, j], sym_uplo(B.uplo)))
         end
     elseif A.uplo == 'L' && B.uplo == 'U'
         for j in 1:n
-            dotprod += dot(A.data[j, j], B.data[j, j])
+            # dotprod += dot(A[j, j], B[j, j])
+            dotprod += dot(symmetric(A.data[j, j], sym_uplo(A.uplo)), symmetric(B.data[j, j], sym_uplo(B.uplo)))
             for i in (j + 1):n
                 dotprod += 2 * dot(A.data[i, j], B.data[j, i])
             end
