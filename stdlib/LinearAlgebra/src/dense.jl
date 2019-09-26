@@ -1425,8 +1425,18 @@ function cond(A::AbstractMatrix, p::Real=2)
     end
     throw(ArgumentError("p-norm must be 1, 2 or Inf, got $p"))
 end
-_cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real) = _cond1Inf(lu(A), p, opnorm(A, p))
-_cond1Inf(A::AbstractMatrix, p::Real)             = opnorm(A, p)*opnorm(inv(A), p)
+
+function _cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real)
+    fac = lu(A, check=false)
+    issuccess(fac) || return convert(real(eltype(A)), Inf)
+    _cond1Inf(fac, p, opnorm(A, p))
+end
+
+function _cond1Inf(A::AbstractMatrix, p::Real)
+    fac = lu(A, check=false)
+    issuccess(fac) || return convert(real(eltype(A)), Inf)
+    opnorm(A, p)*opnorm(inv(fac), p)
+end
 
 ## Lyapunov and Sylvester equation
 
