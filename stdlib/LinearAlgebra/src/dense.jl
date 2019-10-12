@@ -1418,15 +1418,24 @@ function cond(A::AbstractMatrix, p::Real=2)
     if p == 2
         v = svdvals(A)
         maxv = maximum(v)
-        return maxv == 0.0 ? oftype(real(A[1,1]),Inf) : maxv / minimum(v)
+        return iszero(maxv) ? oftype(maxv, Inf) : maxv / minimum(v)
     elseif p == 1 || p == Inf
         checksquare(A)
         return _cond1Inf(A, p)
     end
     throw(ArgumentError("p-norm must be 1, 2 or Inf, got $p"))
 end
-_cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real) = _cond1Inf(lu(A), p, opnorm(A, p))
-_cond1Inf(A::AbstractMatrix, p::Real)             = opnorm(A, p)*opnorm(inv(A), p)
+
+_cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real) = _cond1Inf(lu(A, check=false), p, opnorm(A, p))
+function _cond1Inf(A::AbstractMatrix, p::Real)
+    # `lu!` is only defined for some type of matrices, so in general we need
+    # to transform `A` into a dense matrix before applying `lu!`
+    _to_matrix(A::AbstractMatrix) = Matrix(A)
+    _to_matrix(A::Union{DenseArray, Symmetric, Hermitian, Tridiagonal}) = A
+    fac = lu(_to_matrix(A), check=false)
+    issuccess(fac) || return convert(real(eltype(A)), Inf)
+    return opnorm(A, p) * opnorm(inv(fac), p)
+end
 
 ## Lyapunov and Sylvester equation
 
