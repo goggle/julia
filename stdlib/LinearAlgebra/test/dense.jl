@@ -43,8 +43,6 @@ Random.seed!(1234321)
         @test cond(S, p) ≈ cond(Matrix(S), p)
         H = Hermitian(randn(2,2) + randn(2,2)*im)
         @test cond(H, p) ≈ cond(Matrix(H), p)
-        T = Tridiagonal(randn(2), randn(3), randn(2))
-        @test cond(T, p) ≈ cond(Matrix(T), p)
         U = UpperTriangular(randn(3,3))
         @test cond(U, p) ≈ cond(Matrix(U), p)
     end
