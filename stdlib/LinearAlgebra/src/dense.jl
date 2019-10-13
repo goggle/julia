@@ -1426,7 +1426,6 @@ function cond(A::AbstractMatrix, p::Real=2)
     throw(ArgumentError("p-norm must be 1, 2 or Inf, got $p"))
 end
 
-_cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real) = _cond1Inf(lu(A, check=false), p, opnorm(A, p))
 function _cond1Inf(A::AbstractMatrix, p::Real)
     # `lu!` is currently only defined for some type of matrices, so in general
     #  we need to transform `A` to a dense matrix before applying `lu!`
@@ -1437,7 +1436,6 @@ function _cond1Inf(A::AbstractMatrix, p::Real)
     issuccess(fac) || return convert(real(eltype(fac)), Inf)
     return opnorm(A, p) * opnorm(inv(fac), p)
 end
-
 
 ## Lyapunov and Sylvester equation
 
