@@ -1431,7 +1431,7 @@ function _cond1Inf(A::AbstractMatrix, p::Real)
     if !isa(A, Union{DenseArray, Symmetric, Hermitian, Tridiagonal})
         A = Matrix(A)
     end
-    fac = lu(_to_matrix(A), check=false)
+    fac = lu(A, check=false)
     issuccess(fac) || return convert(real(eltype(A)), Inf)
     return opnorm(A, p) * opnorm(inv(fac), p)
 end
