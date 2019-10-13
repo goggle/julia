@@ -1428,18 +1428,20 @@ end
 
 _cond1Inf(A::StridedMatrix{<:BlasFloat}, p::Real) = _cond1Inf(lu(A, check=false), p, opnorm(A, p))
 function _cond1Inf(A::AbstractMatrix, p::Real)
-
+    if !isa(A, Union{DenseArray, Symmetric, Hermitian, Tridiagonal})
+        A = Matrix(A)
+    end
     fac = lu(_to_matrix(A), check=false)
     issuccess(fac) || return convert(real(eltype(A)), Inf)
     return opnorm(A, p) * opnorm(inv(fac), p)
 end
 # `lu!` is only defined for some type of matrices, so in general we need
 # to transform `A` into a dense matrix before applying `lu!`
-_to_matrix(A::AbstractMatrix) = Matrix(A)
-_to_matrix(A::DenseArray) = A
+# _to_matrix(A::AbstractMatrix) = Matrix(A)
+# _to_matrix(A::DenseArray) = A
 # _to_matrix(A::Symmetric) = A
 # _to_matrix(A::Hermitian) = A
-_to_matrix(A::Tridiagonal) = A
+# _to_matrix(A::Tridiagonal) = A
 
 
 ## Lyapunov and Sylvester equation
