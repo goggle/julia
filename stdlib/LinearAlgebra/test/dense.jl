@@ -29,6 +29,25 @@ Random.seed!(1234321)
             @test_throws ArgumentError cond(a,3)
         end
     end
+    for p in (1, 2, Inf)
+        # singular matrices
+        @test cond(zeros(Int, 2, 2), p) == Inf
+        @test cond(zeros(2, 2), p) == Inf
+        @test cond([0 0; 1 1], p) == Inf
+        @test cond([0. 0.; 1. 1.], p) == Inf
+
+        # different matrix types:
+        D = Diagonal(randn(2))
+        @test cond(D, p) ≈ cond(Matrix(D), p)
+        S = Symmetric(randn(2,2))
+        @test cond(S, p) ≈ cond(Matrix(S), p)
+        H = Hermitian(randn(2,2) + randn(2,2)*im)
+        @test cond(H, p) ≈ cond(Matrix(H), p)
+        T = Tridiagonal(randn(2), randn(3), randn(2))
+        @test cond(T, p) ≈ cond(Matrix(T), p)
+        U = UpperTriangular(randn(3,3))
+        @test cond(U, p) ≈ cond(Matrix(U), p)
+    end
 end
 
 areal = randn(n,n)/2
