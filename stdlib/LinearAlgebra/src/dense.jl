@@ -1437,8 +1437,8 @@ end
 # to transform `A` into a dense matrix before applying `lu!`
 _to_matrix(A::AbstractMatrix) = Matrix(A)
 _to_matrix(A::DenseArray) = A
-_to_matrix(A::Symmetric) = A
-_to_matrix(A::Hermitian) = A
+# _to_matrix(A::Symmetric) = A
+# _to_matrix(A::Hermitian) = A
 _to_matrix(A::Tridiagonal) = A
 
 
