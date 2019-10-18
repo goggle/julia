@@ -795,8 +795,10 @@ get_perm(FC::FactorComponent) = get_perm(Factor(FC))
 # High level interfaces #
 #########################
 
+const StridedVecOrMatIncAdjAndTrans = Union{StridedVecOrMat, Adjoint{<:Any, <:StridedVecOrMat}, Transpose{<:Any, <:StridedVecOrMat}}
+
 # Conversion/construction
-function Dense{T}(A::StridedVecOrMat) where T<:VTypes
+function Dense{T}(A::StridedVecOrMatIncAdjAndTrans) where T<:VTypes
     d = allocate_dense(size(A, 1), size(A, 2), stride(A, 2), T)
     s = unsafe_load(pointer(d))
     for i in eachindex(A)
@@ -804,7 +806,7 @@ function Dense{T}(A::StridedVecOrMat) where T<:VTypes
     end
     d
 end
-function Dense(A::StridedVecOrMat)
+function Dense(A::StridedVecOrMatIncAdjAndTrans)
     T = promote_type(eltype(A), Float64)
     return Dense{T}(A)
 end
@@ -1682,6 +1684,8 @@ end
 (\)(L::Factor{T}, B::Matrix{Complex{T}}) where {T<:Float64} = complex.(L\real(B), L\imag(B))
 (\)(L::Factor{T}, b::StridedVector) where {T<:VTypes} = Vector(L\Dense{T}(b))
 (\)(L::Factor{T}, B::StridedMatrix) where {T<:VTypes} = Matrix(L\Dense{T}(B))
+(\)(L::Factor{T}, B::Adjoint{<:Any, <:StridedMatrix}) where {T<:VTypes} = Matrix(L\Dense{T}(B))
+(\)(L::Factor{T}, B::Transpose{<:Any, <:StridedMatrix}) where {T<:VTypes} = Matrix(L\Dense{T}(B))
 (\)(L::Factor, B::Sparse) = spsolve(CHOLMOD_A, L, B)
 # When right hand side is sparse, we have to ensure that the rhs is not marked as symmetric.
 (\)(L::Factor, B::SparseVecOrMat) = sparse(spsolve(CHOLMOD_A, L, Sparse(B, 0)))
@@ -1703,7 +1707,7 @@ const RealHermSymComplexHermF64SSL = Union{
     Symmetric{Float64,SparseMatrixCSC{Float64,SuiteSparse_long}},
     Hermitian{Float64,SparseMatrixCSC{Float64,SuiteSparse_long}},
     Hermitian{Complex{Float64},SparseMatrixCSC{Complex{Float64},SuiteSparse_long}}}
-function \(A::RealHermSymComplexHermF64SSL, B::StridedVecOrMat)
+function \(A::RealHermSymComplexHermF64SSL, B::StridedVecOrMatIncAdjAndTrans)
     F = cholesky(A; check = false)
     if issuccess(F)
         return \(F, B)
@@ -1716,7 +1720,7 @@ function \(A::RealHermSymComplexHermF64SSL, B::StridedVecOrMat)
         end
     end
 end
-function \(adjA::Adjoint{<:Any,<:RealHermSymComplexHermF64SSL}, B::StridedVecOrMat)
+function \(adjA::Adjoint{<:Any,<:RealHermSymComplexHermF64SSL}, B::StridedVecOrMatIncAdjAndTrans)
     A = adjA.parent
     F = cholesky(A; check = false)
     if issuccess(F)
